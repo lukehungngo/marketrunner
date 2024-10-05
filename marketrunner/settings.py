@@ -131,9 +131,21 @@ environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
 
 # Use the environment variables in settings.py
 DEBUG = env('DEBUG')
-SECRET_KEY = env('SECRET_KEY')
-DATABASES = {
-    'default': env.db()  # Automatically picks up DATABASE_URL
-}
+SECRET_KEY = "my_secret_key"
+if DEBUG:
+    DATABASES = {
+        'default': env.db()
+    }
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.mysql',
+            'NAME': os.environ.get("MYSQL_DATABASE"),
+            'USER': os.environ.get("MYSQL_USER"),
+            'PASSWORD': os.environ.get("MYSQL_PASSWORD"),
+            'HOST': os.environ.get("MYSQL_HOST"),
+            'PORT': os.environ.get("MYSQL_PORT"),
+        }
+    }
 
 NIXTLA_API_KEY = env('NIXTLATL_API_KEY')
