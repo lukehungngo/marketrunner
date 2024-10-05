@@ -27,12 +27,8 @@ SECRET_KEY = "django-insecure-picdl+d$2u1wpgbzu6)j4b%%^b_rwy=@k-@)%ajpy0xi*w+)a&
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-if not DEBUG:
-    ALLOWED_HOSTS = [
-        "marketrunner-production.up.railway.app",
-    ]
-else:
-    ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
+
 # Application definition
 
 INSTALLED_APPS = [
