@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BTC-USD Price Forecast</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <h1>BTC-USD Price Forecast</h1>
+    <p>Below is the forecasted price chart:</p>
+
+    <!-- Date selection form -->
+    <label for="fromDate">From:</label>
+    <input type="date" id="fromDate" name="fromDate" value="2014-10-01">
+
+    <label for="toDate">To:</label>
+    <input type="date" id="toDate" name="toDate" value="{{ default_to_date }}"> <!-- default to current date -->
+
+    <button id="updateChart">Update Chart</button>
+    <script>
+        document.getElementById('updateChart').addEventListener('click', function() {
+            const fromDate = document.getElementById('fromDate').value;
+            const toDate = document.getElementById('toDate').value;
+
+            // Send the data to the Django view via AJAX (using fetch)
+            fetch('/forecast/update', {
+                method: 'POST',  // Use POST for sending data
+                headers: {
+                    'Content-Type': 'application/json',  // Ensure JSON is sent
+                    'X-CSRFToken': '{{ csrf_token }}'  // CSRF token for Django's protection
+                },
+                body: JSON.stringify({
+                    from_date: fromDate,
+                    to_date: toDate
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                const { dates, values } = data;
+
+                // Clear the existing chart and re-render it with the new data
+                document.getElementById('forecastChart').remove(); // Remove the old canvas
+                const newCanvas = document.createElement('canvas'); // Create a new canvas
+                newCanvas.setAttribute('id', 'forecastChart');
+                newCanvas.setAttribute('width', '800');
+                newCanvas.setAttribute('height', '400');
+                document.body.insertBefore(newCanvas, document.getElementById('updateChart').nextSibling);
+
+                // Render the chart again with the new data from the server
+                renderChart(dates, values);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        });
+    </script>
+
+    <!-- Create a canvas element where the chart will be rendered -->
+    <canvas id="forecastChart" width="800" height="400"></canvas>
+
+    <!-- Script to render the chart using Chart.js -->
+    <script>
+        // Get the current date as default
+        const currentDate = new Date().toISOString().split('T')[0];  // Get current date in YYYY-MM-DD format
+        document.getElementById('toDate').value = currentDate;
+
+        // Get the data passed from the Django view directly as arrays
+        const dates = {{ dates|safe }};  // This outputs a valid JS array
+        const values = {{ values|safe }};  // This outputs a valid JS array
+
+        // Initial Chart Rendering
+        function renderChart(filteredDates, filteredValues) {
+            const ctx = document.getElementById('forecastChart').getContext('2d');
+
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: filteredDates,
+                    datasets: [{
+                        label: 'Price',
+                        data: filteredValues,
+                        borderColor: 'blue',
+                        fill: false,
+                        tension: 0.1,
+                        pointRadius: 5,
+                        pointHoverRadius: 7,
+                        pointBackgroundColor: 'blue'
+                    }]
+                },
+                options: {
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Date'
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'TimeGPT Forecast Value'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Filter the data based on the date range
+        function filterDataByDate(fromDate, toDate) {
+            const filteredDates = [];
+            const filteredValues = [];
+
+            dates.forEach((date, index) => {
+                if (date >= fromDate && date <= toDate) {
+                    filteredDates.push(date);
+                    filteredValues.push(values[index]);
+                }
+            });
+            return { filteredDates, filteredValues };
+        }
+
+        // Initial rendering with full data
+        renderChart(dates, values);
+
+        // Add event listener to the button
+        document.getElementById('updateChart').addEventListener('click', function() {
+            const fromDate = document.getElementById('fromDate').value;
+            const toDate = document.getElementById('toDate').value;
+
+            // Filter data based on selected dates
+            const { filteredDates, filteredValues } = filterDataByDate(fromDate, toDate);
+
+            // Clear the existing chart and re-render it
+            document.getElementById('forecastChart').remove(); // Remove the old canvas
+            const newCanvas = document.createElement('canvas'); // Create a new canvas
+            newCanvas.setAttribute('id', 'forecastChart');
+            newCanvas.setAttribute('width', '800');
+            newCanvas.setAttribute('height', '400');
+            document.body.insertBefore(newCanvas, document.getElementById('updateChart').nextSibling);
+
+            // Render the chart again with filtered data
+            renderChart(filteredDates, filteredValues);
+        });
+    </script>
+</body>
+</html>
