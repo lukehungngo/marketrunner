@@ -6,7 +6,7 @@ from django.db import models
 
 class Chart1DForecastTimeGPT(models.Model):
     class Meta:
-        unique_together = (
+        index_together = (
             "from_date",
             "to_date",
         )  # Ensure there's only one record per date

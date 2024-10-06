@@ -86,11 +86,14 @@ def update_forecast_with_high_low(request):
             if not from_date:
                 from_date = constants.DEFAULT_BTC_FROM_DATE
             if not to_date:
-                to_date = datetime.now().strftime("%Y-%m-%d")
-
-            dates, values, high_values, low_values = services.forecast_btc_from_to(
-                from_date=from_date, to_date=to_date
-            )
+                to_date = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            try:
+                dates, values, high_values, low_values = services.forecast_btc_from_to(
+                    from_date=from_date, to_date=to_date
+                )
+            except ValueError as e:
+                print("Error in forecast_btc_from_to:", e)
+                return JsonResponse({"error": str(e)}, status=400)
             # Prepare the response data
             response_data = {
                 "dates": dates,

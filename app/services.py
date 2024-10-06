@@ -36,10 +36,11 @@ def forecast_btc_from_to(from_date=None, to_date=None, force_update=False):
     from_date_pd = pd.to_datetime(from_date)
     to_date_pd = pd.to_datetime(to_date)
     range_data = data[(data["Date"] >= from_date_pd) & (data["Date"] <= to_date_pd)]
-
     result = nixtla_adapter.forecast(
-        apps.get_app_config("app").get_nixtla_client(), range_data
+        apps.get_app_config("app").get_nixtla_client(),
+        range_data,
     )
+    print(result)
     dates = []
     for date in result["Date"]:
         dates.append(date.strftime("%Y-%m-%d %H:%M:%S"))
