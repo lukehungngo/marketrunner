@@ -27,7 +27,7 @@ SECRET_KEY = "django-insecure-picdl+d$2u1wpgbzu6)j4b%%^b_rwy=@k-@)%ajpy0xi*w+)a&
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = ["*"]
 
 # Application definition
 
@@ -50,7 +50,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    'whitenoise.middleware.WhiteNoiseMiddleware',
+    "whitenoise.middleware.WhiteNoiseMiddleware",
 ]
 
 ROOT_URLCONF = "marketrunner.urls"
@@ -58,7 +58,9 @@ ROOT_URLCONF = "marketrunner.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        'DIRS': [BASE_DIR / 'templates'],  # This points to the root-level 'templates/' directory
+        "DIRS": [
+            BASE_DIR / "templates"
+        ],  # This points to the root-level 'templates/' directory
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -116,37 +118,35 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
 STATIC_URL = "static/"
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')  # Add this line
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")  # Add this line
+STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # Initialize environment variables
-env = environ.Env(
-    DEBUG=(bool, False)  # Default to False if not provided
-)
+env = environ.Env(DEBUG=(bool, False))  # Default to False if not provided
 # Reading .env file
-environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
+environ.Env.read_env(os.path.join(BASE_DIR, ".env"))
 
 # Use the environment variables in settings.py
-DEBUG = env('DEBUG')
+DEBUG = env("DEBUG")
 SECRET_KEY = "my_secret_key"
 if DEBUG:
-    DATABASES = {
-        'default': env.db()
-    }
+    DATABASES = {"default": env.db()}
 else:
     DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.mysql',
-            'NAME': os.environ.get("MYSQL_DATABASE"),
-            'USER': os.environ.get("MYSQL_USER"),
-            'PASSWORD': os.environ.get("MYSQL_PASSWORD"),
-            'HOST': os.environ.get("MYSQL_HOST"),
-            'PORT': os.environ.get("MYSQL_PORT"),
+        "default": {
+            "ENGINE": "django.db.backends.mysql",
+            "NAME": os.environ.get("MYSQL_DATABASE"),
+            "USER": os.environ.get("MYSQL_USER"),
+            "PASSWORD": os.environ.get("MYSQL_PASSWORD"),
+            "HOST": os.environ.get("MYSQL_HOST"),
+            "PORT": os.environ.get("MYSQL_PORT"),
         }
     }
 
-NIXTLA_API_KEY = env('NIXTLATL_API_KEY')
+NIXTLA_API_KEY = env("NIXTLATL_API_KEY")
+
+DB_PREFIX = "marketrunner"

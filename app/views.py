@@ -10,27 +10,27 @@ import pandas as pd
 from . import services, constants
 
 
-def plot_forecast(request):
-    dates, values = services.forecast_btc_from_to()
-    string_dates = [ts.strftime('%Y-%m-%d') for ts in dates]
-    # Pass the data to the template
-    context = {
-        'dates': string_dates,
-        'values': values
-    }
+def index(request):
+    return render(request, "index.html")
 
-    return render(request, 'plot_template.html', context)
+
+def plot_forecast(request):
+    dates, values, _, _ = services.forecast_btc_from_to()
+    # Pass the data to the template
+    context = {"dates": dates, "values": values}
+
+    return render(request, "plot_template.html", context)
 
 
 # Assuming your data is coming from your app's config
 @csrf_exempt  # To temporarily disable CSRF protection (only for testing purposes; use CSRF token in production)
 def update_forecast(request):
-    if request.method == 'POST':
+    if request.method == "POST":
         try:
             # Load the JSON body from the request
             body = json.loads(request.body)
-            from_date = body.get('from_date')
-            to_date = body.get('to_date')
+            from_date = body.get("from_date")
+            to_date = body.get("to_date")
 
             # Convert the dates to pd.Timestamp for comparison
             if not from_date:
@@ -38,19 +38,74 @@ def update_forecast(request):
             if not to_date:
                 to_date = datetime.now().strftime("%Y-%m-%d")
 
-            dates, values = services.forecast_btc_from_to(from_date, to_date)
-            string_dates = [ts.strftime('%Y-%m-%d') for ts in dates]
+            dates, values, _, _ = services.forecast_btc_from_to(
+                from_date=from_date, to_date=to_date
+            )
             # Prepare the response data
             response_data = {
-                'dates': string_dates,
-                'values': values,
+                "dates": dates,
+                "values": values,
             }
-            print("Successfully updated forecast from {} to {}".format(from_date, to_date))
+            print(
+                "Successfully updated forecast from {} to {}".format(from_date, to_date)
+            )
 
             # Return the filtered data as JSON
             return JsonResponse(response_data)
 
         except Exception as e:
-            return JsonResponse({'error': str(e)}, status=400)
+            return JsonResponse({"error": str(e)}, status=400)
 
-    return JsonResponse({'error': 'Invalid request method'}, status=405)
+    return JsonResponse({"error": "Invalid request method"}, status=405)
+
+
+def plot_forecast_with_high_low(request):
+    dates, values, high_values, low_values = services.forecast_btc_from_to()
+    # Pass the data to the template
+    context = {
+        "dates": dates,
+        "values": values,
+        "highValues": high_values,
+        "lowValues": low_values,
+    }
+
+    return render(request, "plot_hl_template.html", context)
+
+
+# Assuming your data is coming from your app's config
+@csrf_exempt  # To temporarily disable CSRF protection (only for testing purposes; use CSRF token in production)
+def update_forecast_with_high_low(request):
+    if request.method == "POST":
+        try:
+            # Load the JSON body from the request
+            body = json.loads(request.body)
+            from_date = body.get("from_date")
+            to_date = body.get("to_date")
+
+            # Convert the dates to pd.Timestamp for comparison
+            if not from_date:
+                from_date = constants.DEFAULT_BTC_FROM_DATE
+            if not to_date:
+                to_date = datetime.now().strftime("%Y-%m-%d")
+
+            dates, values, high_values, low_values = services.forecast_btc_from_to(
+                from_date=from_date, to_date=to_date
+            )
+            # Prepare the response data
+            response_data = {
+                "dates": dates,
+                "values": values,
+                "highValues": high_values,
+                "lowValues": low_values,
+            }
+            print(
+                "Successfully updated forecast from {} to {}".format(from_date, to_date)
+            )
+
+            # Return the filtered data as JSON
+            return JsonResponse(response_data)
+
+        except Exception as e:
+            return JsonResponse({"error": str(e)}, status=400)
+
+    return JsonResponse({"error": "Invalid request method"}, status=405)
