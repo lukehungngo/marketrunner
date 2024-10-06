@@ -6,7 +6,7 @@ DEFAULT_BTC_FROM_DATE = "2014-10-01 00:00:00"
 def datetime_to_string(now=None):
     if now is None:
         now = datetime.now()
-    return now.strftime("%Y-%m-%d")
+    return now.strftime("%Y-%m-%d %H:%M:%S")
 
 
 def check_and_convert_date_format(date_string):

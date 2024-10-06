@@ -1,13 +1,11 @@
 import json
 from datetime import datetime
 
-from django.apps import apps
 from django.http import JsonResponse
 from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
-import pandas as pd
 
-from . import services, constants
+from . import constants
 
 
 def index(request):

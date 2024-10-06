@@ -3,9 +3,9 @@ from datetime import datetime
 import pandas as pd
 from django.apps import apps
 
-from . import constants
-from .adapter import nixtla_adapter
-from .models import Chart1DForecastTimeGPT
+from marketrunner.app import constants
+from marketrunner.app.adapters import nixtla_adapter
+from marketrunner.app.models import Chart1DForecastTimeGPT
 
 
 def forecast_btc_from_to(from_date=None, to_date=None, force_update=False):
