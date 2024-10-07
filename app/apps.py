@@ -5,7 +5,7 @@ from django.conf import settings
 from nixtla import NixtlaClient
 
 from . import constants
-from .adapter import nixtla_adapter
+from .adapters import nixtla_adapter, yahoo_finance_adapter
 
 
 class ForecastappConfig(AppConfig):
@@ -22,7 +22,7 @@ class ForecastappConfig(AppConfig):
         if nixtlatl_api_key is None:
             raise ValueError("NIXTLATL_API_KEY is not set in settings.py")
         self.NIXTLA_CLIENT = NixtlaClient(api_key=settings.NIXTLA_API_KEY)
-        self.BTC_ALL_DATA_1D = nixtla_adapter.get_all_raw_data("BTC-USD")
+        self.BTC_ALL_DATA_1D = yahoo_finance_adapter.get_all_raw_data("BTC-USD")
         self.LAST_BTC_UPDATE_DATE = current_date
         print(
             "Date {}, BTC_ALL_DATA_1D initialized!, loaded data of {} dates from {} to {}".format(
@@ -47,7 +47,7 @@ class ForecastappConfig(AppConfig):
         """
         current_date = constants.datetime_to_string()
         if current_date != self.LAST_BTC_UPDATE_DATE:
-            self.BTC_ALL_DATA_1D = nixtla_adapter.get_all_raw_data("BTC-USD")
+            self.BTC_ALL_DATA_1D = yahoo_finance_adapter.get_all_raw_data("BTC-USD")
             self.LAST_BTC_UPDATE_DATE = current_date
             print(
                 "Date {}, BTC_ALL_DATA_1D updated!, loaded data of {} dates from {} to {}".format(

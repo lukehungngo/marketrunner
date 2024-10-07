@@ -35,7 +35,7 @@ class Command(BaseCommand):
         meta_stock_forecast = nixtla_client.forecast(
             df=meta_stock_data,
             model="timegpt-1",
-            h=12,
+            h=7,
             level=[90],  # Generate a 90% confidence interval
             finetune_steps=120,  # Specify the number of steps for fine-tuning
             finetune_loss="mae",  # Specify the loss function for fine-tuning
