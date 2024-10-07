@@ -3,10 +3,14 @@ from datetime import datetime
 DEFAULT_BTC_FROM_DATE = "2014-10-01 00:00:00"
 
 
-def datetime_to_string(now=None):
+def current_date_without_time(now=None):
     if now is None:
-        now = datetime.now()
+        now = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
     return now.strftime("%Y-%m-%d %H:%M:%S")
+
+
+def get_current_datetime():
+    return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
 
 def check_and_convert_date_format(date_string):

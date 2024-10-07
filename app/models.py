@@ -33,7 +33,7 @@ class Chart1DForecastTimeGPT(models.Model):
     values = models.TextField(null=True)  # Forecasted value
     high_90s = models.TextField(null=True)  # Upper confidence bound (hi-90)
     low_90s = models.TextField(null=True)  # Lower confidence bound (lo-90)
-
+    updated_at = models.DateTimeField(auto_now=True)  # Timestamp when data is updated
     created_at = models.DateTimeField(
         auto_now_add=True
     )  # Timestamp when data is cached

@@ -3,9 +3,9 @@ from datetime import datetime
 import pandas as pd
 from django.apps import apps
 
-from marketrunner.app import constants
-from marketrunner.app.adapters import nixtla_adapter
-from marketrunner.app.models import Chart1DForecastTimeGPT
+from app import constants
+from app.adapters import nixtla_adapter
+from app.models import Chart1DForecastTimeGPT
 
 
 def forecast_btc_from_to(from_date=None, to_date=None, force_update=False):
@@ -19,7 +19,14 @@ def forecast_btc_from_to(from_date=None, to_date=None, force_update=False):
             .strftime("%Y-%m-%d %H:%M:%S")
         )
     to_date = constants.check_and_convert_date_format(to_date)
-
+    print(
+        "Forecast 1d chart from {} to {}, current_date {}".format(
+            from_date, to_date, constants.current_date_without_time()
+        )
+    )
+    if to_date == constants.current_date_without_time():
+        force_update = True
+        print("Force update forecast 1d chart from {} to {}".format(from_date, to_date))
     if not force_update:
         cached_data = get_forecast_1d_from_db(from_date, to_date)
         if cached_data:
@@ -35,14 +42,14 @@ def forecast_btc_from_to(from_date=None, to_date=None, force_update=False):
     # Convert 'from_date' and 'to_date' strings to pd.Timestamp for comparison
     from_date_pd = pd.to_datetime(from_date)
     to_date_pd = pd.to_datetime(to_date)
-    range_data = data[(data["Date"] >= from_date_pd) & (data["Date"] <= to_date_pd)]
+    range_data = data[(data["date"] >= from_date_pd) & (data["date"] <= to_date_pd)]
     result = nixtla_adapter.forecast(
         apps.get_app_config("app").get_nixtla_client(),
         range_data,
     )
     print(result)
     dates = []
-    for date in result["Date"]:
+    for date in result["date"]:
         dates.append(date.strftime("%Y-%m-%d %H:%M:%S"))
     values = []
     for value in result["TimeGPT"]:
@@ -55,7 +62,7 @@ def forecast_btc_from_to(from_date=None, to_date=None, force_update=False):
         low_values.append(value)
 
     # store as cached
-    store_forecast_1d_in_db(from_date, to_date, dates, values, high_values, low_values)
+    upsert_forecast_1d_in_db(from_date, to_date, dates, values, high_values, low_values)
 
     return dates, values, high_values, low_values
 
@@ -66,7 +73,20 @@ def get_forecast_1d_from_db(from_date, to_date):
     ).first()
 
 
-def store_forecast_1d_in_db(from_date, to_date, dates, values, high_90s, low_90s):
+def upsert_forecast_1d_in_db(from_date, to_date, dates, values, high_90s, low_90s):
+    if Chart1DForecastTimeGPT.objects.filter(
+            from_date=from_date, to_date=to_date
+    ).exists():
+        Chart1DForecastTimeGPT.objects.filter(
+            from_date=from_date, to_date=to_date
+        ).update(
+            dates=json.dumps(dates),
+            values=json.dumps(values),
+            high_90s=json.dumps(high_90s),
+            low_90s=json.dumps(low_90s),
+        )
+        print(f"Updated forecast 1d chart from {from_date} to {to_date} in DB")
+        return
     Chart1DForecastTimeGPT.objects.create(
         from_date=from_date,
         to_date=to_date,

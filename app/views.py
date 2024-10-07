@@ -6,6 +6,7 @@ from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
 
 from . import constants
+from .services import prediction_services
 
 
 def index(request):
@@ -13,7 +14,7 @@ def index(request):
 
 
 def plot_forecast(request):
-    dates, values, _, _ = services.forecast_btc_from_to()
+    dates, values, _, _ = prediction_services.forecast_btc_from_to()
     # Pass the data to the template
     context = {"dates": dates, "values": values}
 
@@ -36,7 +37,7 @@ def update_forecast(request):
             if not to_date:
                 to_date = datetime.now().strftime("%Y-%m-%d")
 
-            dates, values, _, _ = services.forecast_btc_from_to(
+            dates, values, _, _ = prediction_services.forecast_btc_from_to(
                 from_date=from_date, to_date=to_date
             )
             # Prepare the response data
@@ -58,7 +59,7 @@ def update_forecast(request):
 
 
 def plot_forecast_with_high_low(request):
-    dates, values, high_values, low_values = services.forecast_btc_from_to()
+    dates, values, high_values, low_values = prediction_services.forecast_btc_from_to()
     # Pass the data to the template
     context = {
         "dates": dates,
@@ -86,8 +87,10 @@ def update_forecast_with_high_low(request):
             if not to_date:
                 to_date = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             try:
-                dates, values, high_values, low_values = services.forecast_btc_from_to(
-                    from_date=from_date, to_date=to_date
+                dates, values, high_values, low_values = (
+                    prediction_services.forecast_btc_from_to(
+                        from_date=from_date, to_date=to_date
+                    )
                 )
             except ValueError as e:
                 print("Error in forecast_btc_from_to:", e)
