@@ -25,7 +25,7 @@ krakenex==2.2.2
 lxml==5.3.0
 matplotlib==3.9.2
 multitasking==0.0.11
-mysqlclient==2.2.4
+mysqlclient==2.1.0
 nixtla==0.6.1
 numpy==2.1.2
 orjson==3.10.7
