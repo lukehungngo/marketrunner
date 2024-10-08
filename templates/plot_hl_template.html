@@ -102,6 +102,9 @@
       <!-- Spinner (Hidden initially) -->
       <div id="spinner" class="spinner"></div>
 
+      <!-- Error message element -->
+      <div id="errorMessage" style="color: red; display: none"></div>
+
       <!-- Create a canvas element where the chart will be rendered -->
       <canvas id="forecastChart" width="800" height="400"></canvas>
     </div>
@@ -215,6 +218,8 @@
 
           // Show the spinner while the data is being fetched
           document.getElementById('spinner').style.display = 'block';
+          // Hide any previous error message
+          document.getElementById('errorMessage').style.display = 'none';
 
           // Simulate data fetching process
           fetch('/forecast-hl/update', {
@@ -228,7 +233,14 @@
                   to_date: toDate,
               })
           })
-          .then(response => response.json())
+          .then(response => {
+              if (!response.ok) {
+                  return response.json().then(errorData => {
+                      throw errorData;
+                  });
+              }
+              return response.json();
+          })
           .then(data => {
                const { forecastDates, forecastValues, highValues, lowValues, realDates, realValues } = data;
 
@@ -250,6 +262,10 @@
               console.error('Error:', error);
               // Hide the spinner if there's an error
               document.getElementById('spinner').style.display = 'none';
+              // Show the error message
+              const errorMessageElement = document.getElementById('errorMessage');
+              errorMessageElement.textContent = error.error || 'An unexpected error occurred';
+              errorMessageElement.style.display = 'block';
           });
       });
     </script>

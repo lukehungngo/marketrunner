@@ -19,6 +19,8 @@ def forecast_btc_from_to(from_date=None, to_date=None, force_update=False):
             .strftime("%Y-%m-%d %H:%M:%S")
         )
     to_date = constants.check_and_convert_date_format(to_date)
+    if to_date > constants.current_date_without_time():
+        raise ValueError("Last date cannot be greater than current date")
     print(
         "Forecast 1d chart from {} to {}, current_date {}".format(
             from_date, to_date, constants.current_date_without_time()
@@ -34,7 +36,10 @@ def forecast_btc_from_to(from_date=None, to_date=None, force_update=False):
     from_date_pd = pd.to_datetime(from_date)
     to_date_pd = pd.to_datetime(to_date)
     range_data = data[(data["date"] >= from_date_pd) & (data["date"] <= to_date_pd)]
+    more_date = data[(data["date"] > to_date_pd)].head(7)
     range_data_for_ploting = range_data if len(range_data) < 30 else range_data.tail(30)
+    range_data_for_ploting = pd.concat([range_data_for_ploting, more_date])
+    
     plot_dates = range_data_for_ploting['date'].dt.strftime('%Y-%m-%d %H:%M:%S').tolist()
     plot_close_values = range_data_for_ploting['close'].tolist()
 

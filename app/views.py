@@ -59,7 +59,10 @@ def update_forecast(request):
 
 
 def plot_forecast_with_high_low(request):
-    dates, values, high_values, low_values, realDates, realValues = prediction_services.forecast_btc_from_to()
+    try:
+        dates, values, high_values, low_values, realDates, realValues = prediction_services.forecast_btc_from_to()
+    except ValueError as e:
+        return JsonResponse({"error": str(e)}, status=400)
     # Pass the data to the template
     context = {
         "forecastDates": dates,
@@ -95,7 +98,6 @@ def update_forecast_with_high_low(request):
                     )
                 )
             except ValueError as e:
-                print("Error in forecast_btc_from_to:", e)
                 return JsonResponse({"error": str(e)}, status=400)
             # Prepare the response data
             response_data = {
