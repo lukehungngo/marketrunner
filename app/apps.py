@@ -35,9 +35,9 @@ class ForecastappConfig(AppConfig):
         # if not update today yet or just start the server
         # or last update more than 10 minutes
         if self.LAST_BTC_UPDATE_DATETIME is None or (
-                datetime.strptime(current_datetime, "%Y-%m-%d %H:%M:%S")
-                - datetime.strptime(self.LAST_BTC_UPDATE_DATETIME, "%Y-%m-%d %H:%M:%S")
-                > timedelta(minutes=10)
+            datetime.strptime(current_datetime, "%Y-%m-%d %H:%M:%S")
+            - datetime.strptime(self.LAST_BTC_UPDATE_DATETIME, "%Y-%m-%d %H:%M:%S")
+            > timedelta(minutes=10)
         ):
             self.BTC_ALL_DATA_1D = (
                 market_data_service.get_1d_market_data().reset_index()

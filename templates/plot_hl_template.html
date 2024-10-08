@@ -1,212 +1,257 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>BTC-USD Price Forecast</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/moment@2.29.4/moment.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-moment@1.0.1/dist/chartjs-adapter-moment.min.js"></script>
+
     <style>
-        /* Basic styling */
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
-            padding: 20px;
+      /* Basic styling */
+      body {
+        font-family: Arial, sans-serif;
+        background-color: #f4f4f4;
+        padding: 20px;
+      }
+
+      .container {
+        max-width: 1000px;
+        margin: 0 auto;
+        text-align: center;
+      }
+
+      h1 {
+        color: #333;
+      }
+
+      #forecastChart {
+        margin: 30px 0;
+      }
+
+      /* Button styling */
+      .forecast-btn {
+        background-color: #007bff;
+        color: white;
+        font-size: 16px;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        margin-top: 5px;
+      }
+
+      .forecast-btn:hover {
+        background-color: #0056b3;
+      }
+
+      /* Spinner styling */
+      .spinner {
+        display: none; /* Initially hidden */
+        border: 8px solid #f3f3f3;
+        border-top: 8px solid #3498db;
+        border-radius: 50%;
+        width: 50px;
+        height: 50px;
+        animation: spin 1s linear infinite;
+        margin: 0 auto;
+      }
+
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
         }
-
-        .container {
-            max-width: 1000px;
-            margin: 0 auto;
-            text-align: center;
+        100% {
+          transform: rotate(360deg);
         }
+      }
 
-        h1 {
-            color: #333;
-        }
-
-        #forecastChart {
-            margin: 30px 0;
-        }
-
-        /* Button styling */
-        .forecast-btn {
-            background-color: #007bff;
-            color: white;
-            font-size: 16px;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            margin-top: 5px;
-        }
-
-        .forecast-btn:hover {
-            background-color: #0056b3;
-        }
-
-        /* Spinner styling */
-        .spinner {
-            display: none; /* Initially hidden */
-            border: 8px solid #f3f3f3;
-            border-top: 8px solid #3498db;
-            border-radius: 50%;
-            width: 50px;
-            height: 50px;
-            animation: spin 1s linear infinite;
-            margin: 0 auto;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-
-        /* Warning styling */
-        .warning {
-            color: red;
-            font-size: 16px;
-            margin-bottom: 15px;
-            display: none;
-        }
-
+      /* Warning styling */
+      .warning {
+        color: red;
+        font-size: 16px;
+        margin-bottom: 15px;
+        display: none;
+      }
     </style>
-</head>
-<body>
+  </head>
+  <body>
     <div class="container">
-        <h1>BTC-USD Price Forecast</h1>
-        <p>Pick Your History Data Point to Forecast. The model will based on historical data to predict.</p>
-        <p>Different data set could lead to significantly different result</p>
-        <!-- Date selection form -->
-        <label for="fromDate">From:</label>
-        <input type="date" id="fromDate" name="fromDate" value="2014-10-01">
+      <h1>BTC-USD Price Forecast</h1>
+      <p>
+        Pick Your History Data Point to Forecast. The model will based on
+        historical data to predict.
+      </p>
+      <p>Different data set could lead to significantly different result</p>
+      <!-- Date selection form -->
+      <label for="fromDate">From:</label>
+      <input type="date" id="fromDate" name="fromDate" value="2014-10-01" />
 
-        <label for="toDate">To:</label>
-        <input type="date" id="toDate" name="toDate" value="{{ default_to_date }}">
+      <label for="toDate">To:</label>
+      <input
+        type="date"
+        id="toDate"
+        name="toDate"
+        value="{{ default_to_date }}"
+      />
 
-        <br/>
-        <button id="updateChart" class="forecast-btn">Forecast</button>
+      <br />
+      <button id="updateChart" class="forecast-btn">Forecast</button>
 
-        <!-- Spinner (Hidden initially) -->
-        <div id="spinner" class="spinner"></div>
+      <!-- Spinner (Hidden initially) -->
+      <div id="spinner" class="spinner"></div>
 
-        <!-- Create a canvas element where the chart will be rendered -->
-        <canvas id="forecastChart" width="800" height="400"></canvas>
+      <!-- Create a canvas element where the chart will be rendered -->
+      <canvas id="forecastChart" width="800" height="400"></canvas>
     </div>
     <script>
-        // Set the date format for the input fields (ensure format is YYYY-MM-DD)
-        window.onload = function() {
-            const toDateField = document.getElementById('toDate');
+      // Set the date format for the input fields (ensure format is YYYY-MM-DD)
+      window.onload = function () {
+        const toDateField = document.getElementById("toDate");
 
-            // Check if there is a default value and ensure it uses the proper format
-            if (!toDateField.value) {
-                const today = new Date().toISOString().split('T')[0];  // Get current date in YYYY-MM-DD format
-                toDateField.value = today;
-            }
+        // Check if there is a default value and ensure it uses the proper format
+        if (!toDateField.value) {
+          const today = new Date().toISOString().split("T")[0]; // Get current date in YYYY-MM-DD format
+          toDateField.value = today;
         }
+      };
     </script>
     <script>
-        // Initial Chart Rendering
-        const dates = {{ dates|safe }};   // Assuming passed as context from Django
-        const values = {{ values|safe }};
-        const highValues = {{ highValues|safe }};
-        const lowValues = {{ lowValues|safe }};
+      // Initial Chart Rendering
+      const forecastDates = {{ forecastDates|safe }};
+      const forecastValues = {{ forecastValues|safe }};
+      const highValues = {{ highValues|safe }};
+      const lowValues = {{ lowValues|safe }};
+      const realDates = {{ realDates|safe }}; // Dates for real values
+      const realValues = {{ realValues|safe }}; // Real values
 
-        function renderChart(dates, values, highValues, lowValues) {
-            const ctx = document.getElementById('forecastChart').getContext('2d');
+      function renderChart(forecastDates, forecastValues, highValues, lowValues, realDates, realValues) {
+        const ctx = document.getElementById('forecastChart').getContext('2d');
 
-            new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: dates,
-                    datasets: [
-                        {
-                            label: 'Price',
-                            data: values,
-                            borderColor: 'blue',
-                            fill: false,
-                        },
-                        {
-                            label: 'TimeGPT-hi-90 (Upper Bound)',
-                            data: highValues,
-                            borderColor: 'green',
-                            borderDash: [5, 5],  // Dotted line
-                            fill: false,
-                        },
-                        {
-                            label: 'TimeGPT-lo-90 (Lower Bound)',
-                            data: lowValues,
-                            borderColor: 'red',
-                            borderDash: [5, 5],  // Dotted line
-                            fill: false,
-                        }
-                    ]
+        new Chart(ctx, {
+          type: 'line',
+          data: {
+            datasets: [
+              {
+                label: 'Real Values',
+                data: realDates.map((date, index) => ({ x: date, y: realValues[index] })),
+                borderColor: 'purple',
+                fill: false,
+                pointRadius: 0,
+                order: 1
+              },
+              {
+                label: 'Forecast',
+                data: forecastDates.map((date, index) => ({ x: date, y: forecastValues[index] })),
+                borderColor: 'blue',
+                fill: false,
+                pointRadius: 0,
+                order: 2
+              },
+              {
+                label: 'Upper Bound (90%)',
+                data: forecastDates.map((date, index) => ({ x: date, y: highValues[index] })),
+                borderColor: 'rgba(0, 255, 0, 0.3)',
+                fill: false,
+                pointRadius: 0,
+                order: 3
+              },
+              {
+                label: 'Lower Bound (90%)',
+                data: forecastDates.map((date, index) => ({ x: date, y: lowValues[index] })),
+                borderColor: 'rgba(255, 0, 0, 0.3)',
+                fill: false,
+                pointRadius: 0,
+                order: 4
+              }
+            ]
+          },
+          options: {
+            responsive: true,
+            scales: {
+              x: {
+                type: 'time',
+                time: {
+                  unit: 'day'
                 },
-                options: {
-                    scales: {
-                        x: {
-                            title: {
-                                display: true,
-                                text: 'Date'
-                            }
-                        },
-                        y: {
-                            title: {
-                                display: true,
-                                text: 'TimeGPT Forecast Value'
-                            }
-                        }
-                    }
+                title: {
+                  display: true,
+                  text: 'Date'
                 }
-            });
-        }
-
-        // Initial rendering of the chart
-        renderChart(dates, values, highValues, lowValues);
-
-        // Button click event handler
-        document.getElementById('updateChart').addEventListener('click', function() {
-            const fromDate = document.getElementById('fromDate').value;
-            const toDate = document.getElementById('toDate').value;
-
-            // Show the spinner while the data is being fetched
-            document.getElementById('spinner').style.display = 'block';
-
-            // Simulate data fetching process
-            fetch('/forecast-hl/update', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': '{{ csrf_token }}'
-                },
-                body: JSON.stringify({
-                    from_date: fromDate,
-                    to_date: toDate,
-                })
-            })
-            .then(response => response.json())
-            .then(data => {
-                const { dates, values, highValues, lowValues } = data;
-
-                // Remove the old canvas and create a new one
-                document.getElementById('forecastChart').remove();
-                const newCanvas = document.createElement('canvas');
-                newCanvas.setAttribute('id', 'forecastChart');
-                newCanvas.setAttribute('width', '800');
-                newCanvas.setAttribute('height', '400');
-                document.querySelector('.container').appendChild(newCanvas);
-
-                // Hide the spinner once data is received
-                document.getElementById('spinner').style.display = 'none';
-
-                // Render the updated chart
-                renderChart(dates, values, highValues, lowValues);
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                // Hide the spinner if there's an error
-                document.getElementById('spinner').style.display = 'none';
-            });
+              },
+              y: {
+                beginAtZero: false,
+                title: {
+                  display: true,
+                  text: 'Price (USD)'
+                }
+              }
+            },
+            plugins: {
+              tooltip: {
+                mode: 'index',
+                intersect: false
+              },
+              legend: {
+                position: 'top',
+              },
+              title: {
+                display: true,
+                text: 'BTC-USD Price Forecast'
+              }
+            }
+          }
         });
+      }
+
+      // Initial rendering of the chart
+      renderChart(forecastDates, forecastValues, highValues, lowValues, realDates, realValues);
+
+      // Button click event handler
+      document.getElementById('updateChart').addEventListener('click', function() {
+          const fromDate = document.getElementById('fromDate').value;
+          const toDate = document.getElementById('toDate').value;
+
+          // Show the spinner while the data is being fetched
+          document.getElementById('spinner').style.display = 'block';
+
+          // Simulate data fetching process
+          fetch('/forecast-hl/update', {
+              method: 'POST',
+              headers: {
+                  'Content-Type': 'application/json',
+                  'X-CSRFToken': '{{ csrf_token }}'
+              },
+              body: JSON.stringify({
+                  from_date: fromDate,
+                  to_date: toDate,
+              })
+          })
+          .then(response => response.json())
+          .then(data => {
+               const { forecastDates, forecastValues, highValues, lowValues, realDates, realValues } = data;
+
+              // Remove the old canvas and create a new one
+              document.getElementById('forecastChart').remove();
+              const newCanvas = document.createElement('canvas');
+              newCanvas.setAttribute('id', 'forecastChart');
+              newCanvas.setAttribute('width', '800');
+              newCanvas.setAttribute('height', '400');
+              document.querySelector('.container').appendChild(newCanvas);
+
+              // Hide the spinner once data is received
+              document.getElementById('spinner').style.display = 'none';
+
+              // Render the updated chart
+              renderChart(forecastDates, forecastValues, highValues, lowValues, realDates, realValues);
+          })
+          .catch(error => {
+              console.error('Error:', error);
+              // Hide the spinner if there's an error
+              document.getElementById('spinner').style.display = 'none';
+          });
+      });
     </script>
-</body>
+  </body>
 </html>

@@ -14,9 +14,9 @@ def index(request):
 
 
 def plot_forecast(request):
-    dates, values, _, _ = prediction_services.forecast_btc_from_to()
+    dates, values, _, _ ,realDates ,realValues = prediction_services.forecast_btc_from_to()
     # Pass the data to the template
-    context = {"dates": dates, "values": values}
+    context = {"dates": dates, "values": values }
 
     return render(request, "plot_template.html", context)
 
@@ -37,7 +37,7 @@ def update_forecast(request):
             if not to_date:
                 to_date = datetime.now().strftime("%Y-%m-%d")
 
-            dates, values, _, _ = prediction_services.forecast_btc_from_to(
+            dates, values, _, _, _, _ = prediction_services.forecast_btc_from_to(
                 from_date=from_date, to_date=to_date
             )
             # Prepare the response data
@@ -59,13 +59,15 @@ def update_forecast(request):
 
 
 def plot_forecast_with_high_low(request):
-    dates, values, high_values, low_values = prediction_services.forecast_btc_from_to()
+    dates, values, high_values, low_values, realDates, realValues = prediction_services.forecast_btc_from_to()
     # Pass the data to the template
     context = {
-        "dates": dates,
-        "values": values,
+        "forecastDates": dates,
+        "forecastValues": values,
         "highValues": high_values,
         "lowValues": low_values,
+        "realDates": realDates,
+        "realValues": realValues,
     }
 
     return render(request, "plot_hl_template.html", context)
@@ -87,7 +89,7 @@ def update_forecast_with_high_low(request):
             if not to_date:
                 to_date = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             try:
-                dates, values, high_values, low_values = (
+                dates, values, high_values, low_values, realDates, realValues = (
                     prediction_services.forecast_btc_from_to(
                         from_date=from_date, to_date=to_date
                     )
@@ -97,10 +99,12 @@ def update_forecast_with_high_low(request):
                 return JsonResponse({"error": str(e)}, status=400)
             # Prepare the response data
             response_data = {
-                "dates": dates,
-                "values": values,
+                "forecastDates": dates,
+                "forecastValues": values,
                 "highValues": high_values,
                 "lowValues": low_values,
+                "realDates": realDates,
+                "realValues": realValues,
             }
             print(
                 "Successfully updated forecast from {} to {}".format(from_date, to_date)

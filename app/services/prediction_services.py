@@ -27,6 +27,17 @@ def forecast_btc_from_to(from_date=None, to_date=None, force_update=False):
     if to_date == constants.current_date_without_time():
         force_update = True
         print("Force update forecast 1d chart from {} to {}".format(from_date, to_date))
+
+    data = apps.get_app_config("app").get_btc_all_data_1d()
+
+    # Convert 'from_date' and 'to_date' strings to pd.Timestamp for comparison
+    from_date_pd = pd.to_datetime(from_date)
+    to_date_pd = pd.to_datetime(to_date)
+    range_data = data[(data["date"] >= from_date_pd) & (data["date"] <= to_date_pd)]
+    range_data_for_ploting = range_data if len(range_data) < 30 else range_data.tail(30)
+    plot_dates = range_data_for_ploting['date'].dt.strftime('%Y-%m-%d %H:%M:%S').tolist()
+    plot_close_values = range_data_for_ploting['close'].tolist()
+
     if not force_update:
         cached_data = get_forecast_1d_from_db(from_date, to_date)
         if cached_data:
@@ -35,14 +46,11 @@ def forecast_btc_from_to(from_date=None, to_date=None, force_update=False):
                 cached_data.get_values(),
                 cached_data.get_high_90s(),
                 cached_data.get_low_90s(),
+                plot_dates,
+                plot_close_values,
             )
 
-    data = apps.get_app_config("app").get_btc_all_data_1d()
-
-    # Convert 'from_date' and 'to_date' strings to pd.Timestamp for comparison
-    from_date_pd = pd.to_datetime(from_date)
-    to_date_pd = pd.to_datetime(to_date)
-    range_data = data[(data["date"] >= from_date_pd) & (data["date"] <= to_date_pd)]
+    
     result = nixtla_adapter.forecast(
         apps.get_app_config("app").get_nixtla_client(),
         range_data,
@@ -64,7 +72,8 @@ def forecast_btc_from_to(from_date=None, to_date=None, force_update=False):
     # store as cached
     upsert_forecast_1d_in_db(from_date, to_date, dates, values, high_values, low_values)
 
-    return dates, values, high_values, low_values
+
+    return dates, values, high_values, low_values, plot_dates, plot_close_values
 
 
 def get_forecast_1d_from_db(from_date, to_date):
@@ -75,7 +84,7 @@ def get_forecast_1d_from_db(from_date, to_date):
 
 def upsert_forecast_1d_in_db(from_date, to_date, dates, values, high_90s, low_90s):
     if Chart1DForecastTimeGPT.objects.filter(
-            from_date=from_date, to_date=to_date
+        from_date=from_date, to_date=to_date
     ).exists():
         Chart1DForecastTimeGPT.objects.filter(
             from_date=from_date, to_date=to_date
