@@ -73,7 +73,7 @@ def get_1d_market_data() -> DataFrame:
         )
         print("No data in database, store all data", result.head(), "\n", result.tail())
         return result
-
+    last_five_date = list(query)[-5]["date"]
     last_date = list(query)[-1]["date"]
     if last_date == current_date:
         df = pd.DataFrame(list(query))
@@ -81,6 +81,26 @@ def get_1d_market_data() -> DataFrame:
             df["date"], format="%Y-%m-%d %H:%M:%S", errors="coerce"
         )
         print("No new data to store", df.head(), "\n", df.tail())
+        # update last five date
+        for i in range(5):
+            Char1DMarketData.objects.filter(date=last_five_date[i]).update(
+                open=df.iloc[i]["open"],
+                high=df.iloc[i]["high"],
+                low=df.iloc[i]["low"],
+                close=df.iloc[i]["close"],
+                volume=df.iloc[i]["volume"],
+            )
+        # query data all again
+        query = (
+            Char1DMarketData.objects.all()
+            .order_by("date")
+            .values("date", "open", "high", "low", "close", "volume", "count")
+        )
+        df = pd.DataFrame(list(query))
+        df["date"] = pd.to_datetime(
+            df["date"], format="%Y-%m-%d %H:%M:%S", errors="coerce"
+        )
+        print("Update last five date", last_five_date)
         return df
 
     # find and import new data from the last date to the current date
